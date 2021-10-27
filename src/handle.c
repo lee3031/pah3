@@ -186,8 +186,14 @@ void handle_recv_from_network(char* tinytcp_pkt,
         }
     }
 }
-
-
+/*
+         _  _             _                          _ 
+  /\/\  (_)| |  ___  ___ | |_  ___   _ __    ___    / |
+ /    \ | || | / _ \/ __|| __|/ _ \ | '_ \  / _ \   | |
+/ /\/\ \| || ||  __/\__ \| |_| (_) || | | ||  __/   | |
+\/    \/|_||_| \___||___/ \__|\___/ |_| |_| \___|   |_|
+                                                     
+*/                                                   
 int tinytcp_connect(tinytcp_conn_t* tinytcp_conn,
                     uint16_t cliport, //use this to initialize src port
                     uint16_t servport, //use this to initialize dst port
