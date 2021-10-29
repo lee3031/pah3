@@ -229,15 +229,25 @@ int tinytcp_connect(tinytcp_conn_t* tinytcp_conn,
         usleep(10);
     }
 
-    //TODO update tinytcp_conn attributes
+    /*********TODO update tinytcp_conn attributes*********/
+	int recvd_seq_num = tinytcp_conn->seq_num;
+	tinytcp_conn->curr_state = CONN_ESTABLISHED;
+	tinytcp_conn->seq_num = tinytcp_conn->ack_num;
+	tinytcp_conn->ack_num = recvd_seq_num + 1;
+	/*****************************************************/
 
     fprintf(stderr, "\nACK sending "
             "(src_port:%u dst_port:%u seq_num:%u ack_num:%u)\n",
             tinytcp_conn->src_port, tinytcp_conn->dst_port,
             tinytcp_conn->seq_num, tinytcp_conn->ack_num);
 
-    //TODO send ACK
-
+    /*****************TODO send ACK**********************/
+	tinytcp_pkt = create_tinytcp_pkt(tinytcp_conn->src_port,
+            tinytcp_conn->dst_port, tinytcp_conn->seq_num,
+            tinytcp_conn->ack_num, 1, 0, 0, data, data_size);
+    send_to_network(tinytcp_pkt, TINYTCP_HDR_SIZE + data_size);
+	/****************************************************/
+	
     fprintf(stderr, "\nconnection established...sending file %s\n\n",
             tinytcp_conn->filename);
 
@@ -247,29 +257,45 @@ int tinytcp_connect(tinytcp_conn_t* tinytcp_conn,
 
 void handle_close(tinytcp_conn_t* tinytcp_conn)
 {
-    //TODO update tinytcp_conn attributes
+    /***TODO update tinytcp_conn attributes***/
+	tinytcp_conn->curr_state = FIN_SENT;
+	/*****************************************/
 
     fprintf(stderr, "\nFIN sending "
             "(src_port:%u dst_port:%u seq_num:%u ack_num:%u)\n",
             tinytcp_conn->src_port, tinytcp_conn->dst_port,
             tinytcp_conn->seq_num, tinytcp_conn->ack_num);
 
-    //TODO send FIN
+    /***************************TODO send FIN*************************/
+	char* tinytcp_pkt = create_tinytcp_pkt(tinytcp_conn->src_port,
+            tinytcp_conn->dst_port, tinytcp_conn->seq_num,
+            tinytcp_conn->ack_num, 1, 0, 1, tinytcp_conn->data, tinytcp_conn->data_size);
+    send_to_network(tinytcp_pkt, TINYTCP_HDR_SIZE + tinytcp_conn->data_size);
+	/****************************************************************/
 
     //wait for FIN-ACK
     while (tinytcp_conn->curr_state != FIN_ACK_RECVD) {
         usleep(10);
     }
 
-    //TODO update tinytcp_conn attributes
+    /***********TODO update tinytcp_conn attributes********/
+	int recvd_seq_num = tinytcp_conn->seq_num;
+	tinytcp_conn->curr_state = CONN_TERMINATED;
+	tinytcp_conn->seq_num = tinytcp_conn->ack_num;
+	tinytcp_conn->ack_num = recvd_seq_num + 1;
+	/******************************************************/
 
     fprintf(stderr, "\nACK sending "
             "(src_port:%u dst_port:%u seq_num:%u ack_num:%u)\n",
             tinytcp_conn->src_port, tinytcp_conn->dst_port,
             tinytcp_conn->seq_num, tinytcp_conn->ack_num);
 
-    //TODO send ACK
-
+    /***********************TODO send ACK*********************/
+	tinytcp_pkt = create_tinytcp_pkt(tinytcp_conn->src_port,
+            tinytcp_conn->dst_port, tinytcp_conn->seq_num,
+            tinytcp_conn->ack_num, 1, 0, 0, tinytcp_conn->data, tinytcp_conn->data_size);
+    send_to_network(tinytcp_pkt, TINYTCP_HDR_SIZE + tinytcp_conn->data_size);
+	/*********************************************************/
     tinytcp_free_conn(tinytcp_conn);
 
     fprintf(stderr, "\nfile %s sent...connection terminated\n\n",
