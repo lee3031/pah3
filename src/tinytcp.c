@@ -182,6 +182,8 @@ char* create_tinytcp_pkt(uint16_t src_port,
 void send_to_network(char* tinytcp_pkt,
                      uint16_t tinytcp_pkt_size)
 {
+    usleep(100);
+    
     pthread_spin_lock(&send_to_network_mtx);
 
     if (strlen(tinytcp_pkt) > MAX_TINYTCP_PKT_SIZE) {

@@ -26,7 +26,7 @@ void* handle_send_to_network(void* args)
 
     while (1) {
 
-        usleep(100);
+        int call_send_to_network = 0;
 
         for (int i = 0; i < tinytcp_conn_list_size; ++i) {
             tinytcp_conn_t* tinytcp_conn = tinytcp_conn_list[i];
@@ -47,7 +47,14 @@ void* handle_send_to_network(void* args)
                 }
 
                 //TODO do something else
+
+                //TODO make call_send_to_network = 1 everytime you make a call to send_to_network()
+                //call_send_to_network = 1;
             }
+        }
+
+        if (call_send_to_network == 0) {
+            usleep(100);
         }
     }
 }
