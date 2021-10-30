@@ -44,12 +44,14 @@ void* handle_send_to_network(void* args)
 
                 if (timer_expired(tinytcp_conn->time_last_new_data_acked)) {
                     //TODO do someting
+
                 }
 
                 //TODO do something else
 
                 //TODO make call_send_to_network = 1 everytime you make a call to send_to_network()
-                //call_send_to_network = 1;
+                call_send_to_network = 1;
+
             }
         }
 
@@ -83,6 +85,18 @@ void handle_recv_from_network(char* tinytcp_pkt,
         tinytcp_conn_t* tinytcp_conn = tinytcp_create_conn();
 
         //TODO initialize tinytcp_conn attributes. filename is contained in data
+        /**************************************/
+        tinytcp_conn->src_port = dst_port;
+        tinytcp_conn->dst_port = src_port;
+        tinytcp_conn->curr_state = SYN_RECVD;
+        tinytcp_conn->seq_num = data_size;  
+        tinytcp_conn->ack_num = seq_num + 1;
+        //tinytcp_conn->time_last_new_data_acked;
+        tinytcp_conn->num_of_dup_acks = 0;
+        tinytcp_conn->send_buffer = create_ring_buffer(0);
+        tinytcp_conn->recv_buffer = create_ring_buffer(0);
+        tinytcp_conn->filename = data;
+        /***************************************/
 
         char filepath[500];
         strcpy(filepath, "recvfiles/");
@@ -112,7 +126,18 @@ void handle_recv_from_network(char* tinytcp_pkt,
 
         if (tinytcp_conn->curr_state == SYN_SENT) {
             //TODO update tinytcp_conn attributes
-
+            /**************************************/
+            // tinytcp_conn->src_port = cliport;
+            // tinytcp_conn->dst_port = servport;
+            // tinytcp_conn->curr_state = SYN_SENT;
+            // tinytcp_conn->seq_num = data_size;  //should be a random number
+            // tinytcp_conn->ack_num = 0;
+            // //tinytcp_conn->time_last_new_data_acked;
+            // tinytcp_conn->num_of_dup_acks = 0;
+            // tinytcp_conn->send_buffer = create_ring_buffer(0);
+            // tinytcp_conn->recv_buffer = create_ring_buffer(0);
+            // tinytcp_conn->filename = data;
+            /***************************************/
             fprintf(stderr, "\nSYN-ACK recvd "
                     "(src_port:%u dst_port:%u seq_num:%u ack_num:%u)\n",
                     src_port, dst_port, seq_num, ack_num);
