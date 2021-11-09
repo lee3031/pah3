@@ -41,7 +41,14 @@ void* handle_send_to_network(void* args)
                         continue;
                     }
                 }
-
+/*
+         _  _             _                        ____  
+  /\/\  (_)| |  ___  ___ | |_  ___   _ __    ___  |___ \ 
+ /    \ | || | / _ \/ __|| __|/ _ \ | '_ \  / _ \   __) |
+/ /\/\ \| || ||  __/\__ \| |_| (_) || | | ||  __/  / __/ 
+\/    \/|_||_| \___||___/ \__|\___/ |_| |_| \___| |_____|
+                                                         
+*/
                 if (timer_expired(tinytcp_conn->time_last_new_data_acked)) {
                     //TODO do someting
 
