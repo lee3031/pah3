@@ -41,17 +41,17 @@ void* handle_send_to_network(void* args)
                         continue;
                     }
                 }
-/*
-         _  _             _                        ____  
-  /\/\  (_)| |  ___  ___ | |_  ___   _ __    ___  |___ \ 
- /    \ | || | / _ \/ __|| __|/ _ \ | '_ \  / _ \   __) |
-/ /\/\ \| || ||  __/\__ \| |_| (_) || | | ||  __/  / __/ 
-\/    \/|_||_| \___||___/ \__|\___/ |_| |_| \___| |_____|
-                                                         
-*/
+            /*
+                    _  _             _                        ____  
+             /\/\  (_)| |  ___  ___ | |_  ___   _ __    ___  |___ \ 
+            /    \ | || | / _ \/ __|| __|/ _ \ | '_ \  / _ \   __) |
+           / /\/\ \| || ||  __/\__ \| |_| (_) || | | ||  __/  / __/ 
+           \/    \/|_||_| \___||___/ \__|\___/ |_| |_| \___| |_____|                                                         
+            
+            */
                 if (timer_expired(tinytcp_conn->time_last_new_data_acked)) {
                     //TODO do someting
-
+                    
                 }
 
                 //TODO do something else
@@ -98,7 +98,7 @@ void handle_recv_from_network(char* tinytcp_pkt,
         tinytcp_conn->curr_state = SYN_RECVD;
         tinytcp_conn->seq_num = rand();
         tinytcp_conn->ack_num = seq_num + 1;
-        //tinytcp_conn->time_last_new_data_acked;
+        tinytcp_conn->time_last_new_data_acked = 0;
         tinytcp_conn->num_of_dup_acks = 0;
         tinytcp_conn->send_buffer = create_ring_buffer(0);
         tinytcp_conn->recv_buffer = create_ring_buffer(0);
@@ -229,8 +229,9 @@ void handle_recv_from_network(char* tinytcp_pkt,
 
             //TODO reset timer (i.e., set time_last_new_data_acked to clock())
             //every time some *new* data has been ACKed
-
+            // tinytcp->time_last_new_data_acked = clock();
             //TODO send back an ACK (if needed).
+            
         }
     }
 }
