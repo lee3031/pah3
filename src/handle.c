@@ -51,8 +51,8 @@ void* handle_send_to_network(void* args)
                   / /\/\ \| || ||  __/\__ \| |_| (_) || | | ||  __/   ___) |
                   \/    \/|_||_| \___||___/ \__|\___/ |_| |_| \___|  |____/ 
                                                          
-                      */                            
-                    
+                    */    
+                    // retransmit the packet
                 }
 
                 //TODO do something else
@@ -66,6 +66,9 @@ void* handle_send_to_network(void* args)
            \/    \/|_||_| \___||___/ \__|\___/ |_| |_| \___|  |_____|                                                         
             
             */  
+                if(clock() - tinytcp_conn->time_last_new_data_acked < 1000000) {
+                    fprintf(stderr, "Last Ack was just now");
+                }
 
                 if (tinytcp_conn->send_buffer != NULL && occupied_space(tinytcp_conn->send_buffer, NULL) != 0) {
                     uint32_t occupied = occupied_space(tinytcp_conn->send_buffer, NULL);
@@ -79,7 +82,7 @@ void* handle_send_to_network(void* args)
                     tinytcp_conn->seq_num += 1;
 
                     // fprintf(stderr, "%s", dst_buff);
-                
+                    fprintf(stderr, "Sending seqNum: %d, ackNum: %d\n", tinytcp_conn->seq_num, tinytcp_conn->ack_num);
 
                     char* tinytcp_pkt = create_tinytcp_pkt(tinytcp_conn->src_port,
                     tinytcp_conn->dst_port, tinytcp_conn->seq_num,
@@ -127,7 +130,7 @@ void handle_recv_from_network(char* tinytcp_pkt,
         tinytcp_conn->curr_state = SYN_RECVD;
         tinytcp_conn->seq_num = rand();
         tinytcp_conn->ack_num = seq_num + 1;
-        tinytcp_conn->time_last_new_data_acked = 0;
+        tinytcp_conn->time_last_new_data_acked = clock();
         tinytcp_conn->num_of_dup_acks = 0;
         tinytcp_conn->send_buffer = create_ring_buffer(0);
         tinytcp_conn->recv_buffer = create_ring_buffer(0);
@@ -263,12 +266,38 @@ void handle_recv_from_network(char* tinytcp_pkt,
             
             */  
             //TODO handle received data packets
-            ring_buffer_add(tinytcp_conn->recv_buffer, data, data_size);
-           
-
             //TODO reset timer (i.e., set time_last_new_data_acked to clock())
+        
+            // if(occupied_space(tinytcp_conn->send_buffer, NULL) == 0) {
+            //     fprintf(stderr, "and my Send buffer is empty");
+            // }
+
+            if(data_size == 0) {
+                // tinytcp_conn->time_last_new_data_acked = clock();
+            } else {
+
+                tinytcp_conn->ack_num += 1;
+
+                // if(tinytcp_conn->ack_num == seq_num) {
+                //     fprintf(stderr, "Got a matching seqNum\n");
+                // } else {
+                //     fprintf(stderr, "SEQNUM DOES NOT MATCH <======================\n");
+                // }
+
+                pthread_spin_lock(&tinytcp_conn->mtx);
+                ring_buffer_add(tinytcp_conn->recv_buffer, data, data_size);
+                pthread_spin_unlock(&tinytcp_conn->mtx);
+
+                char* dst_buff = NULL;
+                char* tinytcp_pkt = create_tinytcp_pkt(tinytcp_conn->src_port,
+                tinytcp_conn->dst_port, tinytcp_conn->seq_num,
+                tinytcp_conn->ack_num, 1, 0, 0, dst_buff, 0);
+                // fprintf(stderr, "Sending seqNum: %d, ackNum: %d\n", tinytcp_conn->seq_num, tinytcp_conn->ack_num);
+                send_to_network(tinytcp_pkt, TINYTCP_HDR_SIZE + 0);
+            }
+
             //every time some *new* data has been ACKed
-            // tinytcp->time_last_new_data_acked = clock();
+
             //TODO send back an ACK (if needed).
             
         }
@@ -295,7 +324,7 @@ int tinytcp_connect(tinytcp_conn_t* tinytcp_conn,
     tinytcp_conn->curr_state = SYN_SENT;
     tinytcp_conn->seq_num = rand();  //should be a random number
     tinytcp_conn->ack_num = 0;
-    tinytcp_conn->time_last_new_data_acked = 0;
+    tinytcp_conn->time_last_new_data_acked = clock();
     tinytcp_conn->num_of_dup_acks = 0;
     tinytcp_conn->send_buffer = create_ring_buffer(0);
     tinytcp_conn->recv_buffer = create_ring_buffer(0);
