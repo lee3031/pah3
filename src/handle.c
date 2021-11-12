@@ -44,6 +44,14 @@ void* handle_send_to_network(void* args)
             
                 if (timer_expired(tinytcp_conn->time_last_new_data_acked)) {
                     //TODO do someting
+                    /*
+                           _  _             _                         _____ 
+                    /\/\  (_)| |  ___  ___ | |_  ___   _ __    ___   |___ / 
+                   /    \ | || | / _ \/ __|| __|/ _ \ | '_ \  / _ \    |_ \ 
+                  / /\/\ \| || ||  __/\__ \| |_| (_) || | | ||  __/   ___) |
+                  \/    \/|_||_| \___||___/ \__|\___/ |_| |_| \___|  |____/ 
+                                                         
+                      */                            
                     
                 }
 
@@ -59,21 +67,24 @@ void* handle_send_to_network(void* args)
             
             */  
 
-                if (tinytcp_conn->send_buffer != NULL) {
+                if (tinytcp_conn->send_buffer != NULL && occupied_space(tinytcp_conn->send_buffer, NULL) != 0) {
                     uint32_t occupied = occupied_space(tinytcp_conn->send_buffer, NULL);
-                    char dst_buff[CAPACITY];
+                    uint32_t numOfBytesToRead = occupied > MSS ? MSS : occupied;
+                    char dst_buff[numOfBytesToRead];
 
                     pthread_spin_lock(&tinytcp_conn->mtx);
-                    uint32_t bytes = ring_buffer_remove(tinytcp_conn->send_buffer, dst_buff, occupied);
+                    uint32_t bytes = ring_buffer_remove(tinytcp_conn->send_buffer, dst_buff, numOfBytesToRead);
                     pthread_spin_unlock(&tinytcp_conn->mtx);
                     
-                    fprintf(stderr, "%s", dst_buff);
+                    tinytcp_conn->seq_num += 1;
+
+                    // fprintf(stderr, "%s", dst_buff);
                 
 
                     char* tinytcp_pkt = create_tinytcp_pkt(tinytcp_conn->src_port,
                     tinytcp_conn->dst_port, tinytcp_conn->seq_num,
-                    tinytcp_conn->ack_num, 1, 0, 0, dst_buff, occupied);
-                    send_to_network(tinytcp_pkt, TINYTCP_HDR_SIZE + occupied);
+                    tinytcp_conn->ack_num, 1, 0, 0, dst_buff, numOfBytesToRead);
+                    send_to_network(tinytcp_pkt, TINYTCP_HDR_SIZE + numOfBytesToRead);
                     
                     call_send_to_network = 1;
                 }
