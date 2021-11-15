@@ -14,7 +14,7 @@ Vagrant.configure(2) do |config|
   ## Configure hostname and port forwarding
   config.vm.hostname = "ubuntu"
   config.ssh.forward_x11 = true
-  config.vm.network "forwarded_port", guest: 8080, host: 8888
+  config.vm.network "forwarded_port", guest: 8080, host: 8887
 
   vagrant_root = File.dirname(__FILE__)
 
